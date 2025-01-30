@@ -41,7 +41,7 @@ jobs:
 
     # Step 5: Invalidate CloudFront cache
     - name: Invalidate CloudFront cache
-      uses: chetan/invalidate-cloudfront-action@v1
+      uses: aws-actions/cloudfront-invalidate-action@v1
       with:
         entryPoint: invalidate
         args: "--distribution-id ${CLOUDFRONT_DISTRIBUTION_ID} --paths '/*'"
