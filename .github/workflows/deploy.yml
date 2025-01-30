@@ -3,43 +3,43 @@ name: Deploy to AWS S3 and CloudFront
 on:
   push:
     branches:
-      - main  # Triggers the workflow when you push to the main branch
+      - main  
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-    # Step 1: Checkout the repository
+   
     - name: Checkout code
       uses: actions/checkout@v3
 
-    # Step 2: Set up Node.js (for building Vite)
+   
     - name: Set up Node.js
       uses: actions/setup-node@v3
       with:
-        node-version: 18  # Use your project's Node.js version
+        node-version: 18  
 
-    # Step 3: Install dependencies and build the app
+   
     - name: Install dependencies
       run: npm install
 
     - name: Build the app
       run: npm run build
 
-    # Step 4: Upload to S3
+   
     - name: Upload to S3
       uses: jakejarvis/s3-sync-action@v0.5.1
       with:
         args: --acl public-read --follow-symlinks --delete
       env:
-        AWS_S3_BUCKET: my-vite-bucket  # Your bucket name
+        AWS_S3_BUCKET: my-vite-bucket 
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: us-east-1  # Replace with your region
-        SOURCE_DIR: ./dist  # Built Vite files directory
+        AWS_REGION: us-east-1  
+        SOURCE_DIR: ./dist  
 
-    # Step 5: Invalidate CloudFront cache
+   
     - name: Invalidate CloudFront cache
       run: |
         aws cloudfront create-invalidation \
@@ -48,4 +48,4 @@ jobs:
       env:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        AWS_REGION: us-east-1  # Replace with your region
+        AWS_REGION: us-east-1 
