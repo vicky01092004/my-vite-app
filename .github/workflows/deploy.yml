@@ -1,42 +1,50 @@
-name: Deploy to AWS S3 & CloudFront
+name: Deploy to AWS S3 and CloudFront
 
 on:
   push:
     branches:
-      - main  # Trigger deployment on push to main branch
+      - main  # Triggers the workflow when you push to the main branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3
+    # Step 1: Checkout the repository
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18  # Adjust the version if needed
+    # Step 2: Set up Node.js (for building Vite)
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18  # Use your project's Node.js version
 
-      - name: Install Dependencies
-        run: npm install
+    # Step 3: Install dependencies and build the app
+    - name: Install dependencies
+      run: npm install
 
-      - name: Build Vite App
-        run: npm run build
+    - name: Build the app
+      run: npm run build
 
-      - name: Deploy to S3
-        uses: aws-actions/s3-sync@v1
-        with:
-          bucket: my-vite-bucket
-          region: us-east-1           # Replace with your AWS region
-          local-dir: dist             # Upload the built app
-          delete: true
+    # Step 4: Upload to S3
+    - name: Upload to S3
+      uses: jakejarvis/s3-sync-action@v0.5.1
+      with:
+        args: --acl public-read --follow-symlinks --delete
+      env:
+        AWS_S3_BUCKET: my-vite-bucket  # Your bucket name
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        AWS_REGION: us-east-1  # Replace with your region
+        SOURCE_DIR: ./dist  # Built Vite files directory
 
-      - name: Invalidate CloudFront Cache
-        uses: chetan/invalidate-cloudfront-action@v2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        with:
-          distribution-id: EC5VJLPCY6T83
-          paths: "/*"
+    # Step 5: Invalidate CloudFront cache
+    - name: Invalidate CloudFront cache
+      uses: chetan/invalidate-cloudfront-action@v1
+      with:
+        distribution-id: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
+        paths: /index.html
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
